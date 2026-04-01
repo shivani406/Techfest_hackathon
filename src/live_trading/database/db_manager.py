@@ -1,48 +1,57 @@
+import asyncio
+import json
+import aiokafka
 import psycopg2
-from ...shared.config import Config
+import os
+from dotenv import load_dotenv
 
-class LiveTradingDB:
+load_dotenv()
+
+class trades_db_manager:
     def __init__(self):
-        self.conn = None
-        self.cursor = None
-        self._connect()
-        self._create_table()
-
-    def _connect(self):
         self.conn = psycopg2.connect(
-            host=Config.POSTGRES_HOST,
-            port=Config.POSTGRES_PORT,
-            dbname=Config.POSTGRES_DB,
-            user=Config.POSTGRES_USER,
-            password=Config.POSTGRES_PASSWORD
+            dbname=os.getenv("db_name"),
+            user=os.getenv("db_user"),
+            password=os.getenv("db_pass"),
+            host=os.getenv("db_host"),
+            port=os.getenv("db_port", "5432")
         )
-        self.cursor = self.conn.cursor()
+        self.init_db()
 
-    def _create_table(self):
-        self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS trades (
-            id SERIAL PRIMARY KEY,
-            exchange TEXT,
-            symbol TEXT,
-            price NUMERIC,
-            volume NUMERIC,
-            trade_time TIMESTAMP,
-            received_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    def init_db(self):
+        query = """
+        create table if not exists live_trades (
+            id serial primary key,
+            exchange varchar(50),
+            raw_payload jsonb,
+            received_at timestamp default current_timestamp
         );
-        """)
-        self.conn.commit()
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+            self.conn.commit()
 
-    def insert_trades_bulk(self, trade_list):
-        if not trade_list:
-            return
-        self.cursor.executemany("""
-        INSERT INTO trades (exchange, symbol, price, volume, trade_time)
-        VALUES (%s, %s, %s, %s, %s)
-        """, trade_list)
-        self.conn.commit()
+    async def start_consuming(self):
+        consumer = aiokafka.AIOKafkaConsumer(
+            "binance", "kraken", "coinbase",
+            bootstrap_servers="localhost:9092",
+            group_id="trade_consumer_group",
+            value_deserializer=lambda v: json.loads(v.decode("utf-8"))
+        )
+        await consumer.start()
+        print("db manager started consuming from kafka...")
+        try:
+            async for msg in consumer:
+                self.save_to_postgres(msg.value)
+        finally:
+            await consumer.stop()
 
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.conn:
-            self.conn.close()
+    def save_to_postgres(self, data):
+        query = "insert into live_trades (exchange, raw_payload) values (%s, %s)"
+        with self.conn.cursor() as cur:
+            cur.execute(query, (data['source_exchange'], json.dumps(data['message'])))
+            self.conn.commit()
+
+if __name__ == "__main__":
+    db_worker = trades_db_manager()
+    asyncio.run(db_worker.start_consuming())
