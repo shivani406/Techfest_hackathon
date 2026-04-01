@@ -1,4 +1,4 @@
-<div align="center">🔮 CryptoOracleAutonomous AI-Powered Crypto Sentiment & Signal EngineA self-hosted, end-to-end pipeline that ingests market data, analyzes social sentiment via local LLMs, tracks whale movements, forecasts prices, and generates explainable trading signals.Architecture • Modules • Tech Stack • Installation</div>⚡ The Self-Hosted AdvantageCryptoOracle is designed to run entirely on Your Laptop (Self-Hosted Environment). By utilizing local LLMs (Ollama) and CPU-friendly forecasting models (Prophet), this architecture ensures zero API costs for inference, complete data privacy, and zero reliance on rate-limited external AI providers.🏗️ System Architecturegraph TD
+🔮 CryptoOracleAutonomous AI-Powered Crypto Sentiment & Signal EngineA self-hosted, end-to-end pipeline that ingests market data, analyzes social sentiment via local LLMs, tracks whale movements, forecasts prices, and generates explainable trading signals.Architecture • Modules • Tech Stack • Installation⚡ The Self-Hosted AdvantageCryptoOracle is designed to run entirely on Your Laptop (Self-Hosted Environment). By utilizing local LLMs (Ollama) and CPU-friendly forecasting models (Prophet), this architecture ensures zero API costs for inference, complete data privacy, and zero reliance on rate-limited external AI providers.🏗️ System Architecturegraph TD
     subgraph "1. Data Ingestion Layer"
         R[Reddit API] --> S[Python Scheduler <br> APScheduler/Celery]
         N[News API] --> S
@@ -69,4 +69,4 @@ uvicorn src.backend.main:app --reload --port 8000
 
 # Terminal 3: Launch Streamlit Dashboard
 streamlit run src.frontend.app.py
-(Alternatively, use the provided Rich CLI dashboard: python -m src.frontend.cli)<div align="center"><i>Built with 💻 for the open-source crypto quantitative community.</i></div>
+(Alternatively, use the provided Rich CLI dashboard: python -m src.frontend.cli)Built with 💻 for the open-source crypto quantitative community.
