@@ -1,76 +1,45 @@
 import psycopg2
-from ...shared.config import Config
+from psycopg2.extras import execute_values
+import os
+import json # add this import
 
-class RedditNewsDB:
+class databasemanager:
     def __init__(self):
-        self.conn = None
-        self.cursor = None
-        self._connect()
-        self._create_tables()
-
-    def _connect(self):
         self.conn = psycopg2.connect(
-            host=Config.POSTGRES_HOST,
-            port=Config.POSTGRES_PORT,
-            dbname=Config.POSTGRES_DB,
-            user=Config.POSTGRES_USER,
-            password=Config.POSTGRES_PASSWORD
+            dbname=os.getenv("db_name", "crypto_db"),
+            user=os.getenv("db_user", "postgres"),
+            password=os.getenv("db_pass"),
+            host=os.getenv("db_host", "localhost"),
+            port=os.getenv("db_port", "5432")
         )
-        self.cursor = self.conn.cursor()
+        self.create_tables()
 
-    def _create_tables(self):
-        self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS reddit_posts (
-            id TEXT PRIMARY KEY,
-            title TEXT,
-            body TEXT,
-            score INTEGER,
-            created_utc INTEGER,
-            subreddit TEXT,
-            coin TEXT,
-            fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            sentiment_score REAL,
-            sentiment_label TEXT
+    def create_tables(self):
+        query = """
+        create table if not exists raw_content (
+            id serial primary key,
+            source varchar(50),
+            external_id varchar(255) unique,
+            content_type varchar(50),
+            raw_data jsonb,
+            created_at timestamp default current_timestamp
         );
-        """)
-        self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS news_articles (
-            url TEXT PRIMARY KEY,
-            title TEXT,
-            description TEXT,
-            content TEXT,
-            published_at TIMESTAMP,
-            source TEXT,
-            coin TEXT,
-            fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            sentiment_score REAL,
-            sentiment_label TEXT
-        );
-        """)
-        self.conn.commit()
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+            self.conn.commit()
 
-    def insert_reddit_post(self, post_data):
-        self.cursor.execute("""
-        INSERT INTO reddit_posts (id, title, body, score, created_utc, subreddit, coin)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (id) DO NOTHING;
-        """, (post_data['id'], post_data['title'], post_data['body'][:5000],
-              post_data['score'], post_data['created_utc'],
-              post_data['subreddit'], post_data.get('coin')))
-        self.conn.commit()
-
-    def insert_news_article(self, news_data):
-        self.cursor.execute("""
-        INSERT INTO news_articles (url, title, description, content, published_at, source, coin)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (url) DO NOTHING;
-        """, (news_data['url'], news_data['title'], news_data['description'][:2000],
-              news_data['content'][:5000], news_data['published_at'],
-              news_data['source'], news_data.get('coin')))
-        self.conn.commit()
-
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.conn:
-            self.conn.close()
+    def save_batch(self, source, items):
+        query = """
+        insert into raw_content (source, external_id, content_type, raw_data)
+        values %s on conflict (external_id) do nothing
+        """
+        # wrap the item['data'] dict in json.dumps()
+        data = [
+            (source, item['id'], item['type'], json.dumps(item['data'])) 
+            for item in items
+        ]
+        
+        with self.conn.cursor() as cur:
+            execute_values(cur, query, data)
+            self.conn.commit()
