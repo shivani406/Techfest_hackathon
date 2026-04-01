@@ -1,0 +1,7 @@
+2026-04-02 05:13:34,548 - __main__ - INFO - kafka producer started
+2026-04-02 05:13:34,549 - __main__ - INFO - all exchange tasks initialized
+2026-04-02 05:13:34,550 - source_url_connections - INFO - starting websocket connection for binance
+2026-04-02 05:13:34,596 - source_url_connections - INFO - starting websocket connection for kraken
+2026-04-02 05:13:34,599 - source_url_connections - INFO - starting websocket connection for coinbase
+2026-04-02 05:13:34,849 - asyncio - ERROR - Unclosed AIOKafkaProducer
+producer: <aiokafka.producer.producer.AIOKafkaProducer object at 0x000001FB8C0EF910>

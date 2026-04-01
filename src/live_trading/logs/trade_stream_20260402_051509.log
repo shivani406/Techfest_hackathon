@@ -1,0 +1,5 @@
+2026-04-02 05:15:09,419 - __main__ - INFO - kafka producer started
+2026-04-02 05:15:09,419 - __main__ - INFO - all exchange tasks initialized
+2026-04-02 05:15:09,425 - source_url_connections - INFO - starting websocket connection for binance
+2026-04-02 05:15:09,455 - source_url_connections - INFO - starting websocket connection for kraken
+2026-04-02 05:15:09,457 - source_url_connections - INFO - starting websocket connection for coinbase
