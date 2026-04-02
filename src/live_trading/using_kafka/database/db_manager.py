@@ -35,19 +35,19 @@ class trades_db_manager:
         consumer = aiokafka.AIOKafkaConsumer(
             "binance", "kraken", "coinbase",
             bootstrap_servers="localhost:9092",
-            # CHANGING the group_id forces Kafka to treat this as a brand new user
-            group_id="trade_consumer_new_test_1", 
-            # 'earliest' tells it to go back to the very first message ever sent
-            auto_offset_reset="earliest",       
-            value_deserializer=lambda v: json.loads(v.decode("utf-8")),
-            allow_auto_create_topics=True
+            group_id="trade_consumer_final_v3", # a fresh group name
+            auto_offset_reset="earliest",       # go back to the start
+            value_deserializer=lambda v: json.loads(v.decode("utf-8"))
+            # deleted allow_auto_create_topics=True
         )
         await consumer.start()
-        print("consumer is online and looking for old messages...")
+        print("consumer is online. syncing data...")
         try:
             async for msg in consumer:
-                print(f"received data from {msg.topic}") # Add this to see it live
+                print(f"received: {msg.topic}")
                 self.save_to_postgres(msg.value)
+        except Exception as e:
+            print(f"consumer loop error: {e}")
         finally:
             await consumer.stop()
 

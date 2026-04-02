@@ -1,0 +1,20 @@
+2026-04-02 05:15:09,419 - __main__ - INFO - kafka producer started
+2026-04-02 05:15:09,419 - __main__ - INFO - all exchange tasks initialized
+2026-04-02 05:15:09,425 - source_url_connections - INFO - starting websocket connection for binance
+2026-04-02 05:15:09,455 - source_url_connections - INFO - starting websocket connection for kraken
+2026-04-02 05:15:09,457 - source_url_connections - INFO - starting websocket connection for coinbase
+2026-04-02 05:30:04,824 - asyncio - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-5' coro=<setup_websocket_connection() running at c:\Users\Shivani-Parate\Desktop\Techfest_hackathon\src\live_trading\ingestion\source_url_connections.py:14> wait_for=<Future cancelled> cb=[gather.<locals>._done_callback() at C:\Users\Shivani-Parate\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py:720, gather.<locals>._done_callback() at C:\Users\Shivani-Parate\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py:720]>
+2026-04-02 05:30:04,829 - asyncio - ERROR - Unclosed AIOKafkaProducer
+producer: <aiokafka.producer.producer.AIOKafkaProducer object at 0x000001D868B8A8C0>
+2026-04-02 05:30:04,829 - asyncio - ERROR - Fatal error on SSL transport
+protocol: <asyncio.sslproto.SSLProtocol object at 0x000001D868CD26B0>
+transport: <_ProactorSocketTransport fd=512 read=<_OverlappedFuture cancelled>>
+Traceback (most recent call last):
+  File "C:\Users\Shivani-Parate\AppData\Local\Programs\Python\Python310\lib\asyncio\sslproto.py", line 690, in _process_write_backlog
+    self._transport.write(chunk)
+  File "C:\Users\Shivani-Parate\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 365, in write
+    self._loop_writing(data=bytes(data))
+  File "C:\Users\Shivani-Parate\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 401, in _loop_writing
+    self._write_fut = self._loop._proactor.send(self._sock, data)
+AttributeError: 'NoneType' object has no attribute 'send'
