@@ -5,3 +5,5 @@ feedparser
 websockets
 aiokafka
 pandas
+streamlit
+plotly
